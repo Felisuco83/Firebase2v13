@@ -1,47 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { fileURLToPath } from 'url';
-import { ImagenModel } from 'src/app/models/Imagen.model';
-import { FirestorageService } from './services/firestorage.service';
-import { FirestoreService } from './services/firestore.service';
+import { Component } from '@angular/core';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { Item } from './models/item.model';
+@Component({ selector: 'app-root', templateUrl: './app.component.html', styleUrls: ['./app.component.scss'], })
+export class AppComponent {
+  title = 'listado-reordenable';
+  itemList: Item[] = [{ id: 1, text: 'Tarea 1', completed: false },
+  { id: 2, text: 'Tarea 2', completed: false },
+  { id: 3, text: 'Tarea 3', completed: true }];
 
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
-})
-export class AppComponent implements OnInit{
-  title = 'angular-avanzado';
-  imagenList: ImagenModel[] = [];
-  imagenForm = new FormGroup({
-    imagen: new FormControl(''),
+  drop(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.itemList, event.previousIndex, event.currentIndex);
   }
-  )
-  file:any;
-  constructor(private firestoreService:FirestoreService,
-              private fireStorageService: FirestorageService,
-    ){
-  }
-  ngOnInit(): void {
-    this.firestoreService.getImagenes().subscribe((imagenes: ImagenModel[])=>{
-      this.imagenList = imagenes;
-    })
-  }
-  onFileSelected(event:any){
-    this.file = event.target.files[0];
-  }
-  changeImage(){
-    if(this.file){
-      console.log(this.file);
-      let metadata = {name:this.file.name, size:this.file.size, type: this.file.size}
-      const id = this.imagenList[0].id;
-      this.fireStorageService.uploadImage('images/image.png', this.file, metadata).then((response:any)=>{
-        response.subscribe((element: any)=>{
-          this.firestoreService.updateImagen(id, element)
-        })
-      }) 
-    }
-  }
-  	
-
+  completeItem(event: boolean, id: number) { this.itemList[id].completed = event; }
 }
